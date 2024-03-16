@@ -20,6 +20,22 @@ class MyClient(discord.Client):
         print('Online')
         await self.setup()
 
+    async def on_message(self, message):
+        channel = self.get_channel(int(CHANNEL_ID))
+        prefix = "race"
+        if message.content.startswith(prefix):
+            if channel:
+                await message.channel.send(get_fe())
+                await message.channel.send(get_fone())
+
+    async def on_message(self, message):
+        channel = self.get_channel(int(CHANNEL_ID))
+        if message.author == self.user:
+            return
+
+        if message.content.startswith('!races'):
+            await channel.send(get_fe())
+
     async def background_task(self):
         print('Background task started')
         await self.wait_until_ready()
