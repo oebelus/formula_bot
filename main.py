@@ -24,12 +24,11 @@ async def on_message(message):
         return
     else:
         channel = bot.get_channel(int(CHANNEL_ID))
-        print(channel)
 
-        prefix = "7" 
-        if channel: 
-            command = message.content[len(prefix):]  # Get the command
-            print(command)
+        if message.content == '7': 
+            print(message.content)
+            await channel.send(get_fe())
+            await channel.send(get_fone())
 
 @tasks.loop(hours=24)
 async def background_task():
