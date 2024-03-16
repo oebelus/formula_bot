@@ -1,6 +1,6 @@
 import discord
-import asyncio
 import os
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from utils import get_fe, get_fone
 
@@ -9,45 +9,38 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 CHANNEL_ID = os.getenv('CHANNEL_ID')
 
-class MyClient(discord.Client):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix='!', intents=intents)
 
-    async def setup(self) -> None:
-        self.bg_task = self.loop.create_task(self.background_task())
+@bot.event
+async def on_ready():
+    print('Online')
+    background_task.start()
 
-    async def on_ready(self):
-        print('Online')
-        await self.setup()
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+    else:
+        channel = bot.get_channel(int(CHANNEL_ID))
+        print(channel)
 
-    async def on_message(self, message):
-        channel = self.get_channel(int(CHANNEL_ID))
-        prefix = "race"
-        if message.content.startswith(prefix):
-            if channel:
-                await message.channel.send(get_fe())
-                await message.channel.send(get_fone())
+        prefix = "7" 
+        if channel: 
+            command = message.content[len(prefix):]  # Get the command
+            print(command)
 
-    async def on_message(self, message):
-        channel = self.get_channel(int(CHANNEL_ID))
-        if message.author == self.user:
-            return
+@tasks.loop(hours=24)
+async def background_task():
+    print('Background task started')
+    await bot.wait_until_ready()
+    fe_race = get_fe()
+    fone_race = get_fone()
+    channel = bot.get_channel(int(CHANNEL_ID))
+    if channel:
+        await channel.send(fe_race)
+        await channel.send('------------------------------------')
+        await channel.send(fone_race)
 
-        if message.content.startswith('!races'):
-            await channel.send(get_fe())
-
-    async def background_task(self):
-        print('Background task started')
-        await self.wait_until_ready()
-        fe_race = get_fe()
-        fone_race = get_fone()
-        channel = self.get_channel(int(CHANNEL_ID))
-        if channel:
-            while not self.is_closed():
-                await channel.send(fe_race)
-                await channel.send('------------------------------------')
-                await channel.send(fone_race)
-                await asyncio.sleep(60*60*24)
-
-client = MyClient(intents=discord.Intents.default())
-client.run(TOKEN)
+bot.run(TOKEN)
